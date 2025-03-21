@@ -1,22 +1,51 @@
-import { useState } from 'react'
+import js from '@eslint/js';
+import { useState,useEffect } from 'react'
+import { v4 as uuidv4 } from 'uuid';
 
 function App() {
   const [todo, setTodo] = useState("")
   const [todos, setTodos] = useState([])
-  const [newTodo, setNewTodo] = useState([])
+
+  useEffect(() => {
+    let todoString = localStorage.getItem("todos")
+    if(todoString){
+    let todos = JSON.parse(localStorage.getItem("todos"))
+    setTodos(todos)
+    }
+  }, [])
+  
+
+  const saveLS = (params) =>{
+    localStorage.setItem("todos", JSON.stringify(todos))
+    //setTodos(todos)
+  }
 
   const handleAdd = () => {
-    setTodos([...todos,{todo, isCompleted: false}])
+    setTodos([...todos,{id: uuidv4(), todo, isCompleted: false}])
     setTodo(" ")
-    console.log(todos)
+    saveLS()
   }
 
-  const handleEdit = () => {
-    
+  const handleEdit = (e) => {
+    let id = e.target.name;
+    console.log(id)
+    let t= todos.filter(i=>i.id === id)
+    setTodo(t[0].todo)
+    let newTodos = todos.filter(item=>{
+      return item.id!==id
+    });
+    setTodos(newTodos)
+    saveLS()
   }
 
-  const handleDelete = () => {
-    
+  const handleDelete = (e) => {
+    let id = e.target.name;
+    console.log(id)
+    let newTodos = todos.filter(item=>{
+      return item.id!==id
+    });
+  setTodos(newTodos)
+  saveLS()
   }
   
   const handleChange = (e) => {
@@ -24,14 +53,16 @@ function App() {
   }
 
  const handleCheckbox = (e) => {
-  console.log(e.target.value , e.target.checked);
-  if(e.target.checked){
-    setNewTodo([...newTodo,e.target.value])
-  }
-  console.log(newTodo);
-  newTodo.isCompleted = !newTodo.isCompleted;
-  setTodos(newTodo)
-  
+  let id = e.target.name;
+  console.log(id)
+  let index = todos.findIndex(item=>{
+    return item.id === id;
+  })
+  console.log(index)
+  let newTodos = [...todos];
+  newTodos[index].isCompleted = !newTodos[index].isCompleted;
+  setTodos(newTodos)
+  saveLS()
  }
 
 
@@ -46,11 +77,13 @@ function App() {
       <h2 className='font-bold text-xl'>Your Tasks</h2>
       {todos.map(item=>{
         return <div key={item.id} className="your-todos flex justify-between px-5 w-1/2 my-3">
-              <input name={item.id} type='checkbox' value={item.todo} className='mx-2'onChange={handleCheckbox} />
-              <label className={item.isCompleted?"line-through":""} className="text-xl" >{item.todo}</label>
-            <div className="button">
-              <button className='bg-slate-700 rounded-md p-2 hover:bg-slate-500 text-white mx-1' onClick={handleEdit}>Edit</button>
-              <button className='bg-slate-700 rounded-md p-2 hover:bg-slate-500 text-white mx-1' onClick={handleDelete}>Delete</button>
+            <div className='flex gap-5'> 
+              <input name={item.id} type='checkbox' value={item.isCompleted} className='mx-2'onChange={handleCheckbox} id="" />
+              <label className={item.isCompleted?"line-through":""}>{item.todo}</label>
+            </div>
+            <div className="button flex h-10">
+              <button name={item.id} className='bg-slate-700 rounded-md p-2 hover:bg-slate-500 text-white mx-1' onClick={handleEdit}>Edit</button>
+              <button name={item.id} className='bg-slate-700 rounded-md p-2 hover:bg-slate-500 text-white mx-1' onClick={handleDelete}>Delete</button>
             </div>
           </div>
       })}
